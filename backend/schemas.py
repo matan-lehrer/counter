@@ -1,14 +1,17 @@
 from pydantic import BaseModel
+from datetime import datetime
 
-class ItemBase(BaseModel):
-    name: str
-    description: str
+class CounterBase(BaseModel):
+    current_number: int
+    previous_number: int
+    function_used: str
 
-class ItemCreate(ItemBase):
+class CounterCreate(CounterBase):
     pass
 
-class Item(ItemBase):
+class Counter(CounterBase):
     id: int
+    time_stamp: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

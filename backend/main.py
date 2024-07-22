@@ -1,26 +1,30 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
+from backend import models
+from backend.database import engine, SessionLocal
+from backend.routes import router as counters_router
 from sqlalchemy.orm import Session
-from typing import List
-from backend import crud, models, schemas
-from backend.database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Dependency
-def get_db():
-    db = SessionLocal()
+app.include_router(counters_router, prefix="/api")
+
+
+# Initialize database with first counter
+def initialize_db():
+    db: Session = SessionLocal()
     try:
-        yield db
+        if db.query(models.Counter).count() == 0:
+            initial_counter = models.Counter(
+                current_number=0,
+                previous_number=0,
+                function_used="Initial"
+            )
+            db.add(initial_counter)
+            db.commit()
+            db.refresh(initial_counter)
     finally:
         db.close()
 
-@app.post("/items/", response_model=schemas.Item)
-def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
-    return crud.create_item(db=db, item=item)
-
-@app.get("/items/", response_model=List[schemas.Item])
-def read_items(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    items = crud.get_items(db, skip=skip, limit=limit)
-    return items
+initialize_db()
