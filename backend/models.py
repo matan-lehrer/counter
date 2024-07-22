@@ -8,5 +8,5 @@ class Counter(Base):
     id = Column(Integer, primary_key=True, index=True)
     current_number = Column(Integer, index=True)
     previous_number = Column(Integer)
-    function_used = Column(String)  # Consider using an ENUM for this
+    function_used = Column(String)
     time_stamp = Column(DateTime(timezone=True), server_default=func.now(), index=True)

@@ -3,13 +3,23 @@ from backend import models
 from backend.database import engine, SessionLocal
 from backend.routes import router as counters_router
 from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.include_router(counters_router, prefix="/api")
+origins = ["http://localhost:3000"]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(counters_router, prefix="/api")
 
 # Initialize database with first counter
 def initialize_db():
