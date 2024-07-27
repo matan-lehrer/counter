@@ -20,21 +20,3 @@ app.add_middleware(
 )
 
 app.include_router(counters_router, prefix="/api")
-
-# Initialize database with first counter
-def initialize_db():
-    db: Session = SessionLocal()
-    try:
-        if db.query(models.Counter).count() == 0:
-            initial_counter = models.Counter(
-                current_number=0,
-                previous_number=0,
-                function_used="Initial"
-            )
-            db.add(initial_counter)
-            db.commit()
-            db.refresh(initial_counter)
-    finally:
-        db.close()
-
-initialize_db()

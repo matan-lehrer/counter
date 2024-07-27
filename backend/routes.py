@@ -15,40 +15,39 @@ def get_db():
         db.close()
 
 # General endpoints
-@router.get("/counter/", response_model=List[schemas.Counter])
-def read_counters(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+@router.get("/{session_id}/counter/", response_model=List[schemas.Counter])
+def read_counters(session_id: int, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     try:
-        counters = crud.get_counters(db, skip=skip, limit=limit)
+        counters = crud.get_counters(db, session_id=session_id, skip=skip, limit=limit)
         return counters
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/counter/", response_model=schemas.Counter)
-def create_counter(counter: schemas.CounterCreate, db: Session = Depends(get_db)):
+@router.post("/{session_id}/counter/", response_model=schemas.Counter)
+def create_counter(session_id: int, counter: schemas.CounterCreate, db: Session = Depends(get_db)):
     try:
-        return crud.create_counter(db=db, counter=counter)
+        return crud.create_counter(db=db, session_id=session_id, counter=counter)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 # Custom endpoints
-@router.post("/counter/increase", response_model=schemas.Counter)
-def increase_counter(db: Session = Depends(get_db)):
+@router.post("/{session_id}/counter/increase", response_model=schemas.Counter)
+def increase_counter(session_id: int, db: Session = Depends(get_db)):
     try:
-        return crud.increase_counter(db=db)
+        return crud.increase_counter(db=db, session_id=session_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/counter/decrease", response_model=schemas.Counter)
-def decrease_counter(db: Session = Depends(get_db)):
+@router.post("/{session_id}/counter/decrease", response_model=schemas.Counter)
+def decrease_counter(session_id: int, db: Session = Depends(get_db)):
     try:
-        return crud.decrease_counter(db=db)
+        return crud.decrease_counter(db=db, session_id=session_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/counter/insert", response_model=schemas.Counter)
-def insert_counter(new_number: int, db: Session = Depends(get_db)):
+@router.post("/{session_id}/counter/insert", response_model=schemas.Counter)
+def insert_counter(session_id: int, new_number: int, db: Session = Depends(get_db)):
     try:
-        return crud.insert_counter(db=db, new_number=new_number)
+        return crud.insert_counter(db=db, new_number=new_number, session_id=session_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

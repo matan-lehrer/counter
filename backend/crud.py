@@ -2,54 +2,53 @@ from sqlalchemy.orm import Session
 from backend import models, schemas
 from typing import List
 
+def get_counters(db: Session, session_id: int, skip: int = 0, limit: int = 10) -> List[models.Counter]:
+    return db.query(models.Counter).filter_by(session_id=session_id).offset(skip).limit(limit).all()
 
-def get_counters(db: Session, skip: int = 0, limit: int = 10) -> List[models.Counter]:
-    return db.query(models.Counter).offset(skip).limit(limit).all()
+def create_counter(db: Session, session_id: int, counter: schemas.CounterCreate) -> models.Counter:
+    existing_session = db.query(models.Session).filter_by(id=session_id).first()
 
-def create_counter(db: Session, counter: schemas.CounterCreate) -> models.Counter:
+    if not existing_session:
+        new_session = models.Session(id=session_id)
+        db.add(new_session)
+        db.commit()
+        db.refresh(new_session)
+
     db_counter = models.Counter(
-        current_number=counter.current_number,
-        previous_number=counter.previous_number,
-        function_used=counter.function_used
+        current_count=counter.current_count,
+        session_id=session_id,
     )
     db.add(db_counter)
     db.commit()
     db.refresh(db_counter)
     return db_counter
 
-# increase / decrease / insert the current counter
-def increase_counter(db: Session) -> models.Counter:
-    previous_db_count = _get_latest_count(db)
+def increase_counter(db: Session, session_id: int) -> models.Counter:
+    previous_db_count = _get_latest_count(db, session_id)
     if not previous_db_count:
         raise ValueError("No count found in database.")
     new_counter = schemas.CounterCreate(
-        current_number=previous_db_count.current_number + 1,
-        previous_number=previous_db_count.current_number,
-        function_used="increase 1"
+        current_count=previous_db_count.current_count + 1,
+        session_id=session_id
     )
-    return create_counter(db, new_counter)
+    return create_counter(db, session_id, new_counter)
 
-def decrease_counter(db: Session) -> models.Counter:
-    previous_db_count = _get_latest_count(db)
+def decrease_counter(db: Session, session_id: int) -> models.Counter:
+    previous_db_count = _get_latest_count(db, session_id)
     if not previous_db_count:
         raise ValueError("No count found in database.")
     new_counter = schemas.CounterCreate(
-        current_number=previous_db_count.current_number - 1,
-        previous_number=previous_db_count.current_number,
-        function_used="decrease 1"
+        current_count=previous_db_count.current_count - 1,
+        session_id=session_id
     )
-    return create_counter(db, new_counter)
+    return create_counter(db, session_id, new_counter)
 
-def insert_counter(db: Session, new_number: int) -> models.Counter:
-    previous_db_count = _get_latest_count(db)
-    if not previous_db_count:
-        raise ValueError("No count found in database.")
+def insert_counter(db: Session, session_id: int, new_number: int) -> models.Counter:
     new_counter = schemas.CounterCreate(
-        current_number=new_number,
-        previous_number=previous_db_count.current_number,
-        function_used="insert"
+        current_count=new_number,
+        session_id=session_id
     )
-    return create_counter(db, new_counter)
+    return create_counter(db, session_id, new_counter)
 
-def _get_latest_count(db: Session) -> models.Counter:
-    return db.query(models.Counter).order_by(models.Counter.id.desc()).first()
+def _get_latest_count(db: Session, session_id: int) -> models.Counter:
+    return db.query(models.Counter).filter_by(session_id=session_id).order_by(models.Counter.id.desc()).first()
