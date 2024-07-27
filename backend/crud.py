@@ -24,31 +24,21 @@ def create_counter(db: Session, session_id: int, counter: schemas.CounterCreate)
     return db_counter
 
 def increase_counter(db: Session, session_id: int) -> models.Counter:
-    previous_db_count = _get_latest_count(db, session_id)
-    if not previous_db_count:
-        raise ValueError("No count found in database.")
-    new_counter = schemas.CounterCreate(
-        current_count=previous_db_count.current_count + 1,
-        session_id=session_id
-    )
-    return create_counter(db, session_id, new_counter)
+    return _modify_counter(db, session_id, lambda count: count + 1, initial_value=1)
 
 def decrease_counter(db: Session, session_id: int) -> models.Counter:
-    previous_db_count = _get_latest_count(db, session_id)
-    if not previous_db_count:
-        raise ValueError("No count found in database.")
-    new_counter = schemas.CounterCreate(
-        current_count=previous_db_count.current_count - 1,
-        session_id=session_id
-    )
-    return create_counter(db, session_id, new_counter)
+    return _modify_counter(db, session_id, lambda count: count - 1, initial_value=-1)
 
 def insert_counter(db: Session, session_id: int, new_number: int) -> models.Counter:
-    new_counter = schemas.CounterCreate(
-        current_count=new_number,
-        session_id=session_id
-    )
-    return create_counter(db, session_id, new_counter)
+    return create_counter(db, session_id, schemas.CounterCreate(current_count=new_number))
 
 def _get_latest_count(db: Session, session_id: int) -> models.Counter:
     return db.query(models.Counter).filter_by(session_id=session_id).order_by(models.Counter.id.desc()).first()
+
+def _modify_counter(db: Session, session_id: int, modify_func, initial_value: int) -> models.Counter:
+    previous_db_count = _get_latest_count(db, session_id)
+    if not previous_db_count:
+        new_counter = schemas.CounterCreate(current_count=initial_value)
+    else:
+        new_counter = schemas.CounterCreate(current_count=modify_func(previous_db_count.current_count))
+    return create_counter(db, session_id, new_counter)
