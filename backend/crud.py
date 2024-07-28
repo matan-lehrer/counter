@@ -23,6 +23,15 @@ def create_counter(db: Session, session_id: str, counter: schemas.CounterCreate)
     db.refresh(db_counter)
     return db_counter
 
+def delete_session(db: Session, session_id: str) -> models.Session:
+    session = db.query(models.Session).filter_by(id=session_id).first()
+    if session:
+        db.query(models.Counter).filter_by(session_id=session_id).delete()
+        db.delete(session)
+        db.commit()
+        return session
+    return None
+
 def increase_counter(db: Session, session_id: str) -> models.Counter:
     return _modify_counter(db, session_id, lambda count: count + 1, initial_value=1)
 

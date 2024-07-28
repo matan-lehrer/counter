@@ -30,6 +30,16 @@ def create_counter(session_id: str, counter: schemas.CounterCreate, db: Session 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.delete("/{session_id}/", response_model=schemas.Session)
+def delete_session(session_id: str, db: Session = Depends(get_db)):
+    try:
+        session = crud.delete_session(db=db, session_id=session_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="Session not found")
+        return session
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # Custom endpoints
 @router.post("/{session_id}/counter/increase", response_model=schemas.Counter)
 def increase_counter(session_id: str, db: Session = Depends(get_db)):
