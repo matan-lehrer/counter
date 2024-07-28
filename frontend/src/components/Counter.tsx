@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 const Counter: React.FC = () => {
     const [count, setCount] = useState<number>(0);
     const [newCount, setNewCount] = useState<number | string>(0);
+    const sessionId = 1;
 
     useEffect(() => {
         fetchCount();
@@ -10,9 +11,9 @@ const Counter: React.FC = () => {
 
     const fetchCount = async () => {
         try {
-            const response = await fetch('/api/counter/');
+            const response = await fetch(`/api/${sessionId}/counter/`);
             const data = await response.json();
-            const latestCount = data.length > 0 ? data[0].current_number : 0;
+            const latestCount = data.length > 0 ? data[0].current_count : 0;
             setCount(latestCount);
         } catch (error) {
             console.error('Error fetching count:', error);
@@ -20,7 +21,7 @@ const Counter: React.FC = () => {
     };
 
     const changeCount = async (amount: number) => {
-        const endpoint = amount > 0 ? '/api/counter/increase' : '/api/counter/decrease';
+        const endpoint = amount > 0 ? `/api/${sessionId}/counter/increase` : `/api/${sessionId}/counter/decrease`;
         try {
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -29,7 +30,7 @@ const Counter: React.FC = () => {
                 }
             });
             const data = await response.json();
-            setCount(data.current_number);
+            setCount(data.current_count);
         } catch (error) {
             console.error('Error updating count:', error);
         }
@@ -38,14 +39,14 @@ const Counter: React.FC = () => {
     const insertCount = async () => {
         if (typeof newCount === 'number') {
             try {
-                const response = await fetch(`/api/counter/insert?new_number=${newCount}`, {
+                const response = await fetch(`/api/${sessionId}/counter/insert?new_number=${newCount}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
                 const data = await response.json();
-                setCount(data.current_number);
+                setCount(data.current_count);
             } catch (error) {
                 console.error('Error updating count:', error);
             }
