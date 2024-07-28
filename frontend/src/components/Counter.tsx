@@ -3,7 +3,18 @@ import React, { useState, useEffect } from 'react';
 const Counter: React.FC = () => {
     const [count, setCount] = useState<number>(0);
     const [newCount, setNewCount] = useState<number | string>(0);
-    const sessionId = 1;
+
+    // Generate or retrieve session ID
+    const getSessionId = () => {
+        let sessionId = sessionStorage.getItem('sessionId');
+        if (!sessionId) {
+            sessionId = Math.random().toString(36).substring(2);
+            sessionStorage.setItem('sessionId', sessionId);
+        }
+        return sessionId;
+    };
+
+    const sessionId = getSessionId();
 
     useEffect(() => {
         fetchCount();

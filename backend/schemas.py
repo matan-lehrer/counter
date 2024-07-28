@@ -10,14 +10,14 @@ class CounterCreate(CounterBase):
 
 class Counter(CounterBase):
     id: int
-    session_id: int 
+    session_id: str
     time_stamp: datetime
 
     class Config:
         orm_mode = True
 
 class Session(BaseModel):
-    id: int
+    id: str
     counters: List[Counter] = []
 
     class Config:
